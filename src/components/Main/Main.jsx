@@ -2,31 +2,53 @@ import React, { useEffect, useState } from 'react';
 import redditRequest from '../../utils';
 import Post from '../Post';
 import './main.css';
-import { Box, Grid, GridItem } from '@chakra-ui/react';
+import {
+  Box,
+  Grid,
+  GridItem,
+  Spinner,
+  IconButton,
+  Flex,
+  Center,
+  Text,
+  ListItem
+} from '@chakra-ui/react';
 import { Route, Switch, useParams } from 'react-router-dom';
+import {
+  ArrowRightIcon,
+  ArrowLeftIcon,
+  ViewIcon,
+  ViewOffIcon,
+} from '@chakra-ui/icons';
 
 export default function Main() {
   let { subreddit } = useParams();
 
   const [posts, setPosts] = useState([]);
+  const [next, setNext] = useState('');
+  const [prev, setPrev] = useState('');
+  const [page, setPage] = useState('');
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(true);
+  const [selected, setSelected] = useState([]);
 
   useEffect(() => {
     // get the Posts
     const getPosts = async () => {
-      console.log('sub', subreddit);
-      const { data: response } = await redditRequest(subreddit).catch((err) => {
-        console.log(err);
-      });
+      const { data: response } = await redditRequest(subreddit, page).catch(
+        (err) => {
+          console.log(err);
+        }
+      );
 
       // set loading/error messages if needed
 
       if (response) {
-        const postKeys = ['id', 'author', 'created', 'url'];
+        setNext(response.after);
+
+        const postKeys = ['id', 'author', 'title', 'created', 'thumbnail'];
         // reduce the data to be sfw
         const posts = response.children.reduce((result, c) => {
-          console.log(c);
           // parse out unnecessary data
           const postObj = {};
 
@@ -46,37 +68,66 @@ export default function Main() {
 
     // call the function
     getPosts();
-  }, []);
-
-  //   const handleClick = () => {
-  //     console.log('CLICKED');
-  //     setVisible(visible ? false : true);
-  //     console.log(visible);
-  //   };
+  }, [subreddit, page]);
 
   const renderThis = () => {
     return posts.map((p) => (
       <GridItem key={`post-${p.id}`}>
-        <Post post={p} />
+        <Post handleSelect={handleSelect} post={p} selected={selected} />
       </GridItem>
     ));
   };
 
+  const renderThat = () =>{
+    // return selected.map((s)=>{
+    //   <ListItem></ListItem>
+    // })
+  }
+
+  const handleSelect = (id) => {
+    if (selected.includes(id)) {
+      const newSelected = [
+        ...selected.slice(0, selected.indexOf(id)),
+        ...selected.slice(selected.indexOf(id) + 1),
+      ];
+      setSelected(newSelected);
+    } else {
+      setSelected([...selected, id]);
+    }
+  };
+
+  const handleNext = () => {
+    setPrev(page || '');
+    setPage(next);
+  };
+
+  const handlePrev = () => {
+    setPage(prev);
+  };
+
   return (
-    <Box className="main">
-      {/* <button onClick={handleClick}>HIDE</button> */}
-      <button
-        onClick={() => {
-          setVisible(visible ? false : true);
-        }}
-      >
-        HIDE
-      </button>
+    <Flex className="main" direction="column" justify="center" alignItems="center">
+      <Flex width="100%" justify="space-around">
+        <IconButton onClick={handlePrev} icon={<ArrowLeftIcon />} />
+        <IconButton
+          onClick={() => {
+            setVisible(visible ? false : true);
+          }}
+          icon={visible ? <ViewOffIcon /> : <ViewIcon />}
+        />
+
+        <IconButton onClick={handleNext} icon={<ArrowRightIcon />} />
+      </Flex>
+
       {visible ? (
-        <Grid templateColumns="repeat(5, 1fr)">{loading || renderThis()}</Grid>
+        <Grid templateColumns="repeat(5, 1fr)">
+          {loading ? <Spinner /> : renderThis()}
+        </Grid>
       ) : (
-        <div>bye</div>
+        <Box>bye</Box>
       )}
-    </Box>
+      <Flex><Text color="white">Selected</Text>
+      </Flex>
+    </Flex>
   );
 }
