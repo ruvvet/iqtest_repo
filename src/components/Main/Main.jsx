@@ -127,13 +127,22 @@ export default function Main() {
   };
 
   return (
-    <Flex className="main" direction="row" justify="center" alignItems="center">
+    <Flex
+      className="main"
+      direction="row"
+      justify="center"
+      alignItems="flex-start"
+      width="100%"
+      height="100%"
+    >
       <Flex
         className="main"
         width="70%"
+        height="100%"
         direction="column"
         justify="center"
-        alignItems="center"
+        align="center"
+        bgColor="black"
       >
         <Flex justify="space-around">
           <Tooltip label="Home">
@@ -162,14 +171,10 @@ export default function Main() {
           {loading ? <Spinner /> : renderThis()}
         </Grid>
       </Flex>
-      <Flex
-        direction="column"
-        justify="center"
-        alignItems="center"
-        width="30%"
 
-      >
-        <Flex justify="center" alignItems="center">
+
+      <Flex direction="column" justify="flex-start" align="center" width="30%">
+<Flex>
           <Heading as="h2" color="white" px={6}>
             Selected
           </Heading>
@@ -189,12 +194,13 @@ export default function Main() {
               icon={<DeleteIcon />}
             />
           </Tooltip>
-        </Flex>
-        {visible && (
-          <Flex w="1fr" h="auto" align="center" justify="center">
-            <List bgColor={visible ? '#121212' : ''}>{renderThat()}</List>
           </Flex>
-        )}
+          {visible && (
+            <Flex w="1fr" h="auto" align="center" justify="center">
+              <List bgColor={visible ? '#121212' : ''}>{renderThat()}</List>
+            </Flex>
+          )}
+
       </Flex>
     </Flex>
   );
