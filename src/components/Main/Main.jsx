@@ -11,18 +11,26 @@ import {
   Flex,
   Center,
   Text,
-  ListItem
+  List,
+  ListItem,
+  Image,
+  Tooltip,
+  Input,
+  Heading,
 } from '@chakra-ui/react';
-import { Route, Switch, useParams } from 'react-router-dom';
+import { Route, Switch, Link, useParams, useHistory } from 'react-router-dom';
 import {
   ArrowRightIcon,
   ArrowLeftIcon,
   ViewIcon,
   ViewOffIcon,
+  StarIcon,
+  DeleteIcon,
 } from '@chakra-ui/icons';
 
 export default function Main() {
   let { subreddit } = useParams();
+  const history = useHistory();
 
   const [posts, setPosts] = useState([]);
   const [next, setNext] = useState('');
@@ -30,7 +38,7 @@ export default function Main() {
   const [page, setPage] = useState('');
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(true);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState({});
 
   useEffect(() => {
     // get the Posts
@@ -78,21 +86,34 @@ export default function Main() {
     ));
   };
 
-  const renderThat = () =>{
-    // return selected.map((s)=>{
-    //   <ListItem></ListItem>
-    // })
-  }
+  const renderThat = () => {
+    return Object.keys(selected).map((s) => (
+      <ListItem display="inline-block" key={`selected-${s}`}>
+        <Post
+          handleSelect={handleSelect}
+          post={selected[s]}
+          selected={selected}
+          h="70px"
+          w="70px"
+        />
+      </ListItem>
+    ));
+  };
 
-  const handleSelect = (id) => {
-    if (selected.includes(id)) {
-      const newSelected = [
-        ...selected.slice(0, selected.indexOf(id)),
-        ...selected.slice(selected.indexOf(id) + 1),
-      ];
+  const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      history.push(`/${e.target.value}`);
+    }
+  };
+
+  const handleSelect = (post) => {
+    if (selected[post.id]) {
+      const newSelected = { ...selected };
+      delete newSelected[post.id];
       setSelected(newSelected);
     } else {
-      setSelected([...selected, id]);
+      setSelected({ ...selected, [post.id]: post });
+      console.log(selected);
     }
   };
 
@@ -106,27 +127,74 @@ export default function Main() {
   };
 
   return (
-    <Flex className="main" direction="column" justify="center" alignItems="center">
-      <Flex width="100%" justify="space-around">
-        <IconButton onClick={handlePrev} icon={<ArrowLeftIcon />} />
-        <IconButton
-          onClick={() => {
-            setVisible(visible ? false : true);
-          }}
-          icon={visible ? <ViewOffIcon /> : <ViewIcon />}
-        />
+    <Flex className="main" direction="row" justify="center" alignItems="center">
+      <Flex
+        className="main"
+        width="70%"
+        direction="column"
+        justify="center"
+        alignItems="center"
+      >
+        <Flex justify="space-around">
+          <Tooltip label="Home">
+            <Link to="/">
+              <IconButton icon={<StarIcon />} />
+            </Link>
+          </Tooltip>
 
-        <IconButton onClick={handleNext} icon={<ArrowRightIcon />} />
-      </Flex>
+          <Input
+            color="white"
+            placeholder="Enter Subreddit Name"
+            variant="filled"
+            onKeyDown={(e) => {
+              handleSearch(e);
+            }}
+          />
+          <Tooltip label="Previous">
+            <IconButton onClick={handlePrev} icon={<ArrowLeftIcon />} />
+          </Tooltip>
+          <Tooltip label="Next">
+            <IconButton onClick={handleNext} icon={<ArrowRightIcon />} />
+          </Tooltip>
+        </Flex>
 
-      {visible ? (
         <Grid templateColumns="repeat(5, 1fr)">
           {loading ? <Spinner /> : renderThis()}
         </Grid>
-      ) : (
-        <Box>bye</Box>
-      )}
-      <Flex><Text color="white">Selected</Text>
+      </Flex>
+      <Flex
+        direction="column"
+        justify="center"
+        alignItems="center"
+        width="30%"
+
+      >
+        <Flex justify="center" alignItems="center">
+          <Heading as="h2" color="white" px={6}>
+            Selected
+          </Heading>
+          <Tooltip label={visible ? 'Hide' : 'Unhide'}>
+            <IconButton
+              onClick={() => {
+                setVisible(visible ? false : true);
+              }}
+              icon={visible ? <ViewOffIcon /> : <ViewIcon />}
+            />
+          </Tooltip>
+          <Tooltip label="Clear">
+            <IconButton
+              onClick={() => {
+                setSelected({});
+              }}
+              icon={<DeleteIcon />}
+            />
+          </Tooltip>
+        </Flex>
+        {visible && (
+          <Flex w="1fr" h="auto" align="center" justify="center">
+            <List bgColor={visible ? '#121212' : ''}>{renderThat()}</List>
+          </Flex>
+        )}
       </Flex>
     </Flex>
   );

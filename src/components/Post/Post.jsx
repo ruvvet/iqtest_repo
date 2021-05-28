@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './post.css';
 import { Flex, Box, Image, Spacer, Text } from '@chakra-ui/react';
 
-export default function Post({ handleSelect, post, selected }) {
+export default function Post({ handleSelect, post, selected, h = '100px', w='auto' }) {
   const [showTitle, setShowTitle] = useState(false);
 
   const handleStyle = () => {
@@ -21,15 +21,13 @@ export default function Post({ handleSelect, post, selected }) {
         borderWidth="1px"
         borderRadius="lg"
         overflow="hidden"
-      h="100px"
-
+        h={h}
+        w={w}
         m="6"
         objectFit="cover"
-        onClick={() => handleSelect(post.id)}
+        onClick={() => handleSelect(post)}
         style={{
-          border: `${
-            selected.includes(post.id) ? '5px solid green' : '#FFFFFF'
-          }`,
+          border: `${selected[post.id] ? '5px solid white' : '5px solid black'}`,
         }}
         position="relative"
       >
@@ -42,7 +40,7 @@ export default function Post({ handleSelect, post, selected }) {
           onMouseLeave={() => setShowTitle(false)}
         >
           {showTitle && (
-            <Text color="#FFFFFF" bgColor="#00000050" h="100%" w="100%" p="2">
+            <Text color="#FFFFFF" bgColor="#00000050" h="100%" w="100%" p="2" overflow="auto">
               {post.title}
             </Text>
           )}
